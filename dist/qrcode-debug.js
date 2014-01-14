@@ -1,5 +1,5 @@
-define("arale/qrcode/1.0.3/qrcode-debug", [ "$-debug", "./qrcodealg-debug" ], function(require, exports, module) {
-    var $ = require("$-debug");
+define("seedit/qrcode/1.0.3/qrcode-debug", [ "./qrcodealg-debug" ], function(require, exports, module) {
+    var $ = jQuery;
     var QRCodeAlg = require("./qrcodealg-debug");
     var qrcodeAlgObjCache = [];
     /**
@@ -136,27 +136,26 @@ define("arale/qrcode/1.0.3/qrcode-debug", [ "$-debug", "./qrcodealg-debug" ], fu
 	 * @return {}
 	 */
     qrcode.prototype.createSVG = function(qrCodeAlg) {
-        var s = '<svg xmlns="http://www.w3.org/2000/svg" height="' + this.options.height + '" width="' + this.options.width + '">';
-        //计算每个二维码矩阵中每个点的长宽
-        var tileW = Math.floor(this.options.width / qrCodeAlg.getModuleCount());
-        var tileH = Math.floor(this.options.height / qrCodeAlg.getModuleCount());
-        var rectHead = "<rect ", foreRect = ' width="' + tileW + '" height="' + tileH + '" fill="' + this.options.foreground + '"></rect>', backRect = ' width="' + tileW + '" height="' + tileH + '" fill="' + this.options.background + '"></rect>';
-        //绘制二维码
-        for (var row = 0; row < qrCodeAlg.getModuleCount(); row++) {
-            for (var col = 0; col < qrCodeAlg.getModuleCount(); col++) {
-                s += rectHead + ' y="' + row * tileH + '"" x="' + col * tileW + '"';
-                s += qrCodeAlg.modules[row][col] ? foreRect : backRect;
+        var x, dx, y, dy, moduleCount = qrCodeAlg.getModuleCount(), scale = this.options.height / this.options.width, svg = '<svg xmlns="http://www.w3.org/2000/svg" ' + 'width="' + this.options.width + 'px" height="' + this.options.height + 'px" ' + 'viewbox="0 0 ' + moduleCount * 10 + " " + moduleCount * 10 * scale + '">', rectHead = "<path ", foreRect = ' style="stroke-width:0.5;stroke:' + this.options.foreground + ";fill:" + this.options.foreground + ';"></path>', backRect = ' style="stroke-width:0.5;stroke:' + this.options.background + ";fill:" + this.options.background + ';"></path>';
+        // draw in the svg
+        for (var row = 0; row < moduleCount; row++) {
+            for (var col = 0; col < moduleCount; col++) {
+                x = col * 10;
+                y = row * 10 * scale;
+                dx = (col + 1) * 10;
+                dy = (row + 1) * 10 * scale;
+                svg += rectHead + 'd="M ' + x + "," + y + " L " + dx + "," + y + " L " + dx + "," + dy + " L " + x + "," + dy + ' Z"';
+                svg += qrCodeAlg.modules[row][col] ? foreRect : backRect;
             }
         }
-        s += "</svg>";
-        $svg = $(s);
-        //返回svg节点
-        return $svg[0];
+        svg += "</svg>";
+        // return just built svg
+        return $(svg)[0];
     };
     module.exports = qrcode;
 });
 
-define("arale/qrcode/1.0.3/qrcodealg-debug", [], function(require, exports, module) {
+define("seedit/qrcode/1.0.3/qrcodealg-debug", [], function(require, exports, module) {
     /**
 	 * 二维码算法实现
 	 * @param {string} data              要编码的信息字符串
